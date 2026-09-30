@@ -5,7 +5,8 @@
   Production (Cloudflare Pages) k liye apna Render backend URL yahan daalein.
 */
 // const BACKEND_URL = "https://your-render-service-name.onrender.com"; // <-- Replace with your Render URL
-const BACKEND_URL = "http://localhost:5000";
+// const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://instagram-amber-three.vercel.app/";
 
 const userForm = document.getElementById("userForm");
 const submitBtn = document.getElementById("submitBtn");
