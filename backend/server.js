@@ -6,47 +6,39 @@ const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 
-// Connect to MongoDB Atlas
-connectDB();
-
 const app = express();
 
-/*
-  DEPLOYMENT CORS CONFIGURATION:
-  Cloudflare Pages se requests allow karne ke liye CORS configuration.
-  Aap chahein to CLIENT_URL me apna exact Cloudflare domain daal sakte hain,
-  ya default sab allow kar sakte hain.
-*/
-const allowedOrigin = process.env.CLIENT_URL || "*";
-app.use(
-  cors({
-    origin: allowedOrigin,
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
-  }),
-);
-
+// Sare origins allow karein taake Cloudflare Pages se request block na ho
+app.use(cors());
 app.use(express.json());
 
-// Health Check route for Render deployment verification
+// Har incoming request se pehle database connection ensure karein
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
+
+// Health check route
 app.get("/", (req, res) => {
   res
     .status(200)
-    .json({
-      status: "OK",
-      message: "Server is healthy and running on Render.",
-    });
+    .json({ status: "OK", message: "Backend is running on Vercel" });
 });
 
-// Mount user API routes
+// API Routes
 app.use("/api", userRoutes);
 
-/*
-  DEPLOYMENT PORT:
-  Render automatically PORT environment variable assign karta hai (e.g. 10000).
-  Isliye process.env.PORT use karna lazmi hai.
-*/
+// Local environment k liye listen karega
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+  });
+}
+
+// Vercel serverless runtime k liye export lazmi hai
+module.exports = app;
